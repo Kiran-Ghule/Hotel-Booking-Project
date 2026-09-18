@@ -1,15 +1,15 @@
 package com.airbnb.project.entities;
 
-import com.airbnb.project.entities.enums.Roles;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Set;
 
 @Entity
+@Data
 @Table(name = "app_user")
-@Getter
-@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class User {
@@ -23,9 +23,13 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false)
     private String name;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
-    private Set<Roles> roles;
+    private Set<String> role;
+
+
+
 }

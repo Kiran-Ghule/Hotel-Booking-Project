@@ -1,7 +1,7 @@
 package com.airbnb.project.controller;
 
-import com.airbnb.project.dto.HotelDTO;
-import com.airbnb.project.services.HotelService;
+import com.airbnb.project.dtos.HotelDTO;
+import com.airbnb.project.services.HotelServices;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,43 +10,45 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/admin/hotels")
+@RequestMapping(path = "/admin/hotels")
 @RequiredArgsConstructor
 @Slf4j
 public class HotelController {
-
-    private  final HotelService hotelService;
+    private final HotelServices hotelServices;
 
     @PostMapping
     public ResponseEntity<HotelDTO> createHotel(@RequestBody HotelDTO hotelDTO) {
-        log.info("Attempting to create hotel with Name : {}", hotelDTO.getName());
-        HotelDTO hotelDTO1 = hotelService.createNewHotel(hotelDTO);
-        return new ResponseEntity<>(hotelDTO1, HttpStatus.ACCEPTED);
-
+        log.info("Attempting to creating hotel {}", hotelDTO);
+        HotelDTO createHotelDTO = hotelServices.createHotel(hotelDTO);
+        return new  ResponseEntity<>(createHotelDTO, HttpStatus.CREATED);
     }
 
-    @GetMapping(path="/{hotelId}")
+    @GetMapping("/{hotelId}")
     public ResponseEntity<HotelDTO> getHotelById(@PathVariable Long hotelId) {
-        HotelDTO hotelDTO = hotelService.getHotelById(hotelId);
-        return new ResponseEntity<>(hotelDTO, HttpStatus.OK);
+        log.info("Attempting to get hotel {}", hotelId);
+        HotelDTO hotelDTO = hotelServices.getHotelById(hotelId);
+        return new  ResponseEntity<>(hotelDTO, HttpStatus.OK);
     }
 
-    @PutMapping(path="/{hotelId}")
-    public ResponseEntity<HotelDTO> deleteHotelById(@PathVariable Long hotelId, @RequestBody HotelDTO hotelDTO) {
-        HotelDTO hotelDTO1 = hotelService.updateHotelById(hotelId, hotelDTO);
-        return new ResponseEntity<>(hotelDTO1, HttpStatus.OK);
+    @PutMapping("/{hotelId}")
+    public ResponseEntity<HotelDTO> updateHotel(@PathVariable Long hotelId,@RequestBody HotelDTO hotelDTO) {
+        log.info("Attempting to update hotel {}", hotelDTO);
+        HotelDTO hotelDTO1 = hotelServices.updateHotel(hotelId, hotelDTO);
+        return new  ResponseEntity<>(hotelDTO1, HttpStatus.OK);
     }
 
     @DeleteMapping("/{hotelId}")
-    public ResponseEntity<Void> deleteHotelById(@PathVariable Long hotelId) {
-        hotelService.deleteHotelById(hotelId);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<Boolean> deleteHotel(@PathVariable Long hotelId) {
+        log.info("Attempting to delete hotel {}", hotelId);
+        Boolean deleted = hotelServices.deleteHotelById(hotelId);
+        log.info("Deleted hotel {}", hotelId);
+        return ResponseEntity.ok().body(deleted);
     }
 
-    @PatchMapping(path="/{hotelId}")
-    public ResponseEntity<Void> activateHotelById(@PathVariable Long hotelId) {
-        hotelService.activateHotelById(hotelId);
-        return ResponseEntity.noContent().build();
+    @PatchMapping("/{hotelId}")
+    public ResponseEntity<Void> activateHotel(@PathVariable Long hotelId) {
+        log.info("Attempting to activate hotel {}", hotelId);
+        hotelServices.ActivateHotel(hotelId);
+        return ResponseEntity.ok().build();
     }
-
 }

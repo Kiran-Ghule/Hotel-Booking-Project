@@ -4,55 +4,52 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.sql.results.graph.collection.internal.BagInitializer;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Data
 @Table(
-        uniqueConstraints =
-            @UniqueConstraint(
-                    name = "unique_hotel_room_date",
-                    columnNames = {"hotel_id","room_id","date"}
-            )
-    )
+        uniqueConstraints = @UniqueConstraint(
+                name = "unique_hotel_room_data",
+                columnNames = {"Hotel_Id","Room_Id","date"}
+        ))
+@AllArgsConstructor
+@NoArgsConstructor
 @Builder
 public class Inventory {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private Long id;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "Hotel_Id", nullable = false)
+    private Hotel hotel;
 
-        @ManyToOne(fetch = FetchType.LAZY)
-        @JoinColumn(name = "hotel_id")
-        private Hotel hotel;
-
-        @ManyToOne(fetch = FetchType.LAZY)
-        @JoinColumn(name = "room_id")
-        private Room room;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "Room_Id",nullable = false)
+    private Room room;
 
     @Column(nullable = false)
     private LocalDate date;
 
-    @Column(nullable = false, columnDefinition = "INTEGER DEFAULT 0")
-    private Integer bookCount;
+    @Column(nullable = false,columnDefinition = "INTEGER DEFAULT 0")
+    private Integer bookedCount;
 
-    @Column(nullable = false, columnDefinition = "INTEGER DEFAULT 0")
+    @Column(nullable = false,columnDefinition = "INTEGER DEFAULT 0")
     private Integer reservedCount;
 
     @Column(nullable = false)
     private Integer totalCount;
 
-    @Column(nullable = false, precision = 5, scale = 2)
+    @Column(nullable = false,precision = 5,scale = 2)
     private BigDecimal surgeFactor;
 
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal price;
+    @Column(nullable = false,precision = 10,scale = 2)
+    private BigDecimal price;  // basePrice * surgeFactor
 
     @Column(nullable = false)
     private String city;
@@ -61,9 +58,12 @@ public class Inventory {
     private Boolean closed;
 
     @CreationTimestamp
-    private LocalDateTime createdAt;
+    @Column(updatable = false)
+    private LocalDateTime created;
 
     @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    @Column(nullable = false)
+    private LocalDateTime updated;
+
 
 }

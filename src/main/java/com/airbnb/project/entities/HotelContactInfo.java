@@ -1,21 +1,15 @@
 package com.airbnb.project.entities;
 
-import jakarta.persistence.Embeddable;
-import jakarta.persistence.Entity;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.Data;
 
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @Embeddable
+@Data
 public class HotelContactInfo {
+
     private String address;
-    private String phone;
+    private String phoneNumber;
     private String email;
     private String location;
 }

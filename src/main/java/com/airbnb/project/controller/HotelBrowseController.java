@@ -1,12 +1,13 @@
 package com.airbnb.project.controller;
 
-import com.airbnb.project.dto.HotelDTO;
-import com.airbnb.project.dto.HotelInfoDTO;
-import com.airbnb.project.dto.HotelPriceDTO;
-import com.airbnb.project.dto.HotelSearchRequest;
-import com.airbnb.project.services.HotelService;
-import com.airbnb.project.services.InventoryService;
+import com.airbnb.project.dtos.HotelDTO;
+import com.airbnb.project.dtos.HotelInfoDTO;
+import com.airbnb.project.dtos.HotelSearchRequest;
+import com.airbnb.project.entities.Hotel;
+import com.airbnb.project.services.HotelServices;
+import com.airbnb.project.services.InventoryServices;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,24 +15,22 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/hotels")
 @RequiredArgsConstructor
+@RequestMapping("/hotels")
 public class HotelBrowseController {
 
-    private final InventoryService inventoryService;
-    private final HotelService hotelService;
-
+    private final InventoryServices inventoryServices;
+    private final HotelServices hotelServices;
 
     @GetMapping("/search")
-    public ResponseEntity<Page<HotelPriceDTO>> searchHotel(@RequestBody HotelSearchRequest hotelSearchRequest){
-
-        var page = inventoryService.searchHotels(hotelSearchRequest);
+    public ResponseEntity<Page<HotelDTO>> searchHotels(@RequestBody HotelSearchRequest hotelSearchRequest){
+        Page<HotelDTO> page = inventoryServices.search(hotelSearchRequest);
         return ResponseEntity.ok(page);
     }
 
-    @GetMapping("/{hotelId}/Info")
-    public ResponseEntity<HotelInfoDTO> getHotelInfo(@PathVariable Long hotelId){
-        return ResponseEntity.ok(hotelService.getHotelInfoById(hotelId));
+    @GetMapping("/{hotelId}")
+    public ResponseEntity<HotelInfoDTO> getHotelInfo(@PathVariable("hotelId") Long hotelId){
+        return  ResponseEntity.ok(hotelServices.getHotelInfoById(hotelId));
     }
-
 }
+

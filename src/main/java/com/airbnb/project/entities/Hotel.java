@@ -1,26 +1,19 @@
 package com.airbnb.project.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.web.bind.annotation.GetMapping;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Data
 public class Hotel {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     @Column(nullable = false)
@@ -29,29 +22,30 @@ public class Hotel {
     private String city;
 
     @Column(columnDefinition = "TEXT[]")
-    private String[] photos;
+    private String []photos;
 
     @Column(columnDefinition = "TEXT[]")
-    private String[] amentities;
+    private String []amenities;
 
     @CreationTimestamp
-    private LocalDateTime createdAt;
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime created;
 
     @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    @Column(nullable = false)
+    private LocalDateTime updated;
+
+    @Embedded
+    private  HotelContactInfo contactInfo;
 
     @Column(nullable = false)
     private Boolean active;
 
-    @Embedded
-    private HotelContactInfo contactInfo;
+    @OneToMany(mappedBy = "hotel",fetch = FetchType.LAZY)
+    private List<Room> rooms;
 
     @ManyToOne
     private User owner;
-
-    @OneToMany(mappedBy = "hotel")
-    private List<Room> rooms;
-
 
 
 

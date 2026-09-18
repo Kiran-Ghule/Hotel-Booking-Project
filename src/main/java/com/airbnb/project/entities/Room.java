@@ -1,10 +1,7 @@
 package com.airbnb.project.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -12,38 +9,21 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Data
 public class Room {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="hotel_id",nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "Hotel_Id",nullable = false)
     private Hotel hotel;
 
     @Column(nullable = false)
     private String type;
 
-    @Column(nullable = false,precision =  10,scale=2)
+    @Column(precision =  10,scale = 2)
     private BigDecimal basePrice;
-
-    @Column(columnDefinition = "TEXT[]")
-    private String[] photos;
-
-    @Column(columnDefinition = "TEXT[]")
-    private String[] amentities;
-
-    @CreationTimestamp
-    @Column(updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
 
     @Column(nullable = false)
     private Integer totalCount;
@@ -51,5 +31,18 @@ public class Room {
     @Column(nullable = false)
     private Integer capacity;
 
+
+    @Column(columnDefinition = "TEXT[]")
+    private String []photos;
+
+    @Column(columnDefinition = "TEXT[]")
+    private String []amenities;
+
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime created;
+
+    @UpdateTimestamp
+    private LocalDateTime updated;
 
 }
