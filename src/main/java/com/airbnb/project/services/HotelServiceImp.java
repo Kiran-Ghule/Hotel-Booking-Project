@@ -96,10 +96,14 @@ public class HotelServiceImp implements HotelServices {
 
         hotel.setActive(true);
         hotelRepository.save(hotel);
-        log.info("Hotel with hotelId {} has been activated", hotelId);
+        log.info("Hotel with hotel for has been activated", hotel);
 
         for(Room room : hotel.getRooms()) {
+            log.info("Initializing room with room price {}", room.getBasePrice());
             inventoryServices.initializeRoomForYear(room);
+
+
+
         }
     }
 

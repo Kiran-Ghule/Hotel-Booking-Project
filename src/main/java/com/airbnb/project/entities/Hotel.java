@@ -1,5 +1,6 @@
 package com.airbnb.project.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -10,6 +11,7 @@ import java.util.List;
 
 @Entity
 @Data
+
 public class Hotel {
 
     @Id
@@ -42,6 +44,7 @@ public class Hotel {
     private Boolean active;
 
     @OneToMany(mappedBy = "hotel",fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Room> rooms;
 
     @ManyToOne

@@ -18,7 +18,7 @@ public class RoomDTO {
 
     private Long id;
     private String type;
-    private BigDecimal price;
+    private BigDecimal basePrice;
 
     private Integer totalCount;
     private Integer capacity;
