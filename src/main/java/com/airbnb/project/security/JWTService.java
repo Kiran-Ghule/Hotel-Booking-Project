@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
 import java.util.Date;
 
 @Service
@@ -22,7 +21,7 @@ public class JWTService {
         return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
 
-    private String generateAccessToken(User user){
+    public String generateAccessToken(User user){
         return Jwts.builder()
                 .subject(user.getId().toString())
                 .claim("email",user.getEmail())
@@ -34,7 +33,7 @@ public class JWTService {
 
     }
 
-    private String generateRefreshToken(User user){
+    public String generateRefreshToken(User user){
         return Jwts.builder()
                 .subject(user.getId().toString())
                 .issuedAt(new Date())
@@ -44,7 +43,7 @@ public class JWTService {
 
     }
 
-    private Long getUserIdFromToken(String token){
+    public Long getUserIdFromToken(String token){
         Claims claims = Jwts.parser()
                 .verifyWith(getSecretKey())
                 .build()
