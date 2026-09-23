@@ -16,10 +16,13 @@ public class ResponseAPI<T> {
         this.timestamp = LocalDateTime.now();
     }
 
+
+
     public ResponseAPI(T data) {
         this();
-        if(data instanceof ApiError)
+        if( data instanceof ApiError) {
             this.error = (ApiError) data;
+        }
         else
             this.data = data;
     }
