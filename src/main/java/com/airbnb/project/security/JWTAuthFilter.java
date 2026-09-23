@@ -9,6 +9,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -19,6 +20,7 @@ import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JWTAuthFilter extends OncePerRequestFilter {
 
     private final JWTService jwtService;
@@ -26,15 +28,16 @@ public class JWTAuthFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        log.info("JWT Authentication Filter Called");
          final String  requestTokenHeader = request.getHeader("Authorization");
 
-         if(requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
+         if(requestTokenHeader == null || !requestTokenHeader.startsWith("Bearer ")) {
              filterChain.doFilter(request,response);
              return;
-
          }
-
+        log.debug("JWT Authentication for Split Token");
          String token = requestTokenHeader.split("Bearer ")[1];
+        logger.info(token);
         Long userId = jwtService.getUserIdFromToken(token);
 
         if(userId != null  && SecurityContextHolder.getContext().getAuthentication() == null) {
