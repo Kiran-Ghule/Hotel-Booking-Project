@@ -18,6 +18,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/hotels")
+@Slf4j
 public class HotelBrowseController {
 
     private final InventoryServices inventoryServices;
@@ -31,6 +32,7 @@ public class HotelBrowseController {
 
     @GetMapping("/{hotelId}")
     public ResponseEntity<HotelInfoDTO> getHotelInfo(@PathVariable("hotelId") Long hotelId){
+        log.info("Get Hotel By Id Controller Called");
         return  ResponseEntity.ok(hotelServices.getHotelInfoById(hotelId));
     }
 }
