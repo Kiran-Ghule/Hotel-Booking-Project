@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 @Data
 @Table(name = "app_user")
 @AllArgsConstructor
+@Slf4j
 @NoArgsConstructor
 public class User implements UserDetails {
     @Id
@@ -53,8 +55,8 @@ public class User implements UserDetails {
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof User user)) return false;
-        return Objects.equals(id, user.id);
+        if (o instanceof User user) return  Objects.equals(id, user.getId());
+        return false;
     }
 
     @Override
