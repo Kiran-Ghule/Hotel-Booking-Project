@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Arrays;
+
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
@@ -43,6 +45,18 @@ public class AuthController {
         response.addCookie(cookie);
 
         return ResponseEntity.ok(new LoginResponseDTO(tokens[1]));
+    }
+
+
+    @PostMapping("/refresh")
+    public ResponseEntity<LoginResponseDTO> refresh(HttpServletRequest request) {
+        String refreshToken = Arrays.stream(request.getCookies())
+                .filter( cookie ->  "RefreshToken".equals(cookie.getName()))
+                .findFirst()
+                .map(Cookie::getValue)
+                .orElseThrow(()->new AssertionError("RefreshToken not found in cookies"));
+
+        return ResponseEntity.ok(new LoginResponseDTO(authService.refreshToken(refreshToken)));
     }
 
 }
