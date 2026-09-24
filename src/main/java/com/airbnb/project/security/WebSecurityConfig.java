@@ -1,6 +1,9 @@
 package com.airbnb.project.security;
 
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,12 +16,18 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(securedEnabled = true)
 @RequiredArgsConstructor
 public class WebSecurityConfig {
+
+    @Autowired
+    @Qualifier("handlerExceptionResolver")
+    private HandlerExceptionResolver handlerExceptionResolver;
+
     private final JWTAuthFilter jwtAuthFilter;
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
@@ -32,8 +41,16 @@ public class WebSecurityConfig {
                                     .requestMatchers("/admin/**").hasRole("HOTEL_MANAGER")
                                     .requestMatchers("/bookings/**").authenticated()
                                     .anyRequest().permitAll()
-
                     )
+                   .exceptionHandling(exception -> exception
+                           .accessDeniedHandler((request, response, ex) -> {
+                               handlerExceptionResolver.resolveException(
+                                       request,
+                                       response,
+                                       null,
+                                       ex
+                               );
+                           }))
                     .build();
     }
 
