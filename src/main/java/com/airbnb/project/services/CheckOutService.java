@@ -1,4 +1,9 @@
 package com.airbnb.project.services;
 
-public interface checkOutService {
+import com.airbnb.project.entities.Booking;
+
+public interface CheckOutService {
+    String getCheckoutSession(Booking bookingId, String successUrl, String failureUrl);
+
+
 }
