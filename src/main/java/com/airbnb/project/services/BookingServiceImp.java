@@ -12,6 +12,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +33,11 @@ public class BookingServiceImp implements BookingService {
     private final InventoryRepository inventoryRepository;
     private final ModelMapper modelMapper;
     private final GuestRepository guestRepository;
+    private final CheckOutService  checkOutService;
+
+
+    @Value("${frontend.url}")
+    private  String FrontEndUrl ;
 
     @Override
     @Transactional
@@ -78,7 +84,7 @@ public class BookingServiceImp implements BookingService {
                 .checkOutDate(bookingRequest.getCheckOutDate())
                 .user(getCurrentUser())
                 .roomsCount(bookingRequest.getRoomCount())
-                .amount(BigDecimal.TEN)
+                .amount(BigDecimal.valueOf(100000))
                 .build();
 
         log.info("Booking check-in: {}", booking.getCheckInDate());
@@ -121,6 +127,23 @@ public class BookingServiceImp implements BookingService {
         bookingRepository.save(booking);
         return modelMapper.map(booking, BookingDTO.class);
 
+
+    }
+
+    @Override
+    public String initiatePayment(Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(()->( new ResourceNotFound("Booking not found with "+bookingId)));
+
+        if(hasBookingExpired(booking))
+            throw new RuntimeException("Booking has expired");
+
+        log.info(FrontEndUrl);
+
+        String sessionUrl= checkOutService.getCheckoutSession(booking,FrontEndUrl+"/Success",FrontEndUrl+"/Failure");
+        booking.setBookingStatus(BookingStatus.PAYMENT_PENDING);
+        bookingRepository.save(booking);
+        return sessionUrl;
 
     }
 
