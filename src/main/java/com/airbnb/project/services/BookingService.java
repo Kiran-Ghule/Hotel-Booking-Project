@@ -6,7 +6,6 @@ import com.airbnb.project.dtos.GuestDTO;
 import com.stripe.model.Event;
 
 import java.util.List;
-import java.util.Map;
 
 public interface BookingService {
 
@@ -17,4 +16,7 @@ public interface BookingService {
     String initiatePayment(Long bookingId);
 
     void capturePayment(Event event);
+
+    void cancelBooking(Long bookingId);
+
 }

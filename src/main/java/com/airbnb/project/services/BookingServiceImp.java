@@ -8,8 +8,11 @@ import com.airbnb.project.entities.enums.BookingStatus;
 import com.airbnb.project.exceptions.ResourceNotFound;
 import com.airbnb.project.exceptions.UnAuthorisedException;
 import com.airbnb.project.repositories.*;
+import com.stripe.exception.StripeException;
 import com.stripe.model.Event;
+import com.stripe.model.Refund;
 import com.stripe.model.checkout.Session;
+import com.stripe.param.RefundCreateParams;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -178,6 +181,46 @@ public class BookingServiceImp implements BookingService {
             log.warn("Unhandled event type:{}",event.getType());
 
         }
+
+    }
+
+    @Override
+    @Transactional
+    public void cancelBooking(Long bookingId) {
+        Booking booking = bookingRepository
+                .findById(bookingId)
+                .orElseThrow(()->new ResourceNotFound("Booking not found with {}"+bookingId));
+
+        User user = getCurrentUser();
+        if(!user.equals(booking.getUser()))
+        {
+            throw new UnAuthorisedException("User is not the owner of the booking");
+        }
+
+        if(booking.getBookingStatus() != BookingStatus.CONFIRMED)
+        {
+            throw new IllegalStateException("Booking Status is not CONFIRMED");
+        }
+
+        booking.setBookingStatus(BookingStatus.CANCELLED);
+        bookingRepository.save(booking);
+
+        inventoryRepository.findAndLockReservedInventory(booking.getRoom().getId(),booking.getCheckInDate(),booking.getCheckOutDate(),booking.getRoomsCount());
+        inventoryRepository.cancelBooking(booking.getRoom().getId(),booking.getCheckInDate(),booking.getCheckOutDate(),booking.getRoomsCount());
+
+        //handling Refund
+        try
+        {
+            Session session = Session.retrieve(booking.getPaymentSessionId());
+            RefundCreateParams refundCreateParams = RefundCreateParams.builder()
+                    .setPaymentIntent(session.getPaymentIntent())
+                    .build();
+            Refund.create(refundCreateParams);
+
+        } catch (StripeException e) {
+            throw new RuntimeException(e);
+        }
+
 
     }
 
