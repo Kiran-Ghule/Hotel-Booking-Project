@@ -8,6 +8,7 @@ import com.airbnb.project.entities.enums.BookingStatus;
 import com.airbnb.project.exceptions.ResourceNotFound;
 import com.airbnb.project.exceptions.UnAuthorisedException;
 import com.airbnb.project.repositories.*;
+import com.airbnb.project.strategy.PricingService;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Event;
 import com.stripe.model.Refund;
@@ -39,6 +40,7 @@ public class BookingServiceImp implements BookingService {
     private final ModelMapper modelMapper;
     private final GuestRepository guestRepository;
     private final CheckOutService  checkOutService;
+    private final PricingService pricingService;
 
 
     @Value("${frontend.url}")
@@ -70,17 +72,15 @@ public class BookingServiceImp implements BookingService {
 
         // TODO : Reserve the Room and Update Book Count
 
-        for(Inventory inventory:list){
-            inventory.setReservedCount(inventory.getReservedCount()+ bookingRequest.getRoomCount());
-            log.info("Room Count: "+inventory.getBookedCount());
-        }
-
-        inventoryRepository.saveAll(list);
+        inventoryRepository.initBooking(room.getId(),bookingRequest.getCheckInDate(),bookingRequest.getCheckOutDate(),bookingRequest.getRoomCount());
         log.info("Inventory saved ");
-        // Create the Booking
 
 
+        BigDecimal priceForOneRoom = pricingService.calculateTotalPrice(list);
+        BigDecimal totalPrice = priceForOneRoom.multiply(BigDecimal.valueOf(bookingRequest.getRoomCount()));
         log.info("Booking for booking request {}",bookingRequest);
+
+
         Booking  booking = Booking.builder()
                 .bookingStatus(BookingStatus.RESERVED)
                 .hotel(hotel)
@@ -89,7 +89,7 @@ public class BookingServiceImp implements BookingService {
                 .checkOutDate(bookingRequest.getCheckOutDate())
                 .user(getCurrentUser())
                 .roomsCount(bookingRequest.getRoomCount())
-                .amount(BigDecimal.valueOf(100000))
+                .amount(totalPrice)
                 .build();
 
         log.info("Booking check-in: {}", booking.getCheckInDate());
