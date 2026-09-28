@@ -33,4 +33,10 @@ public class HotelBookingController {
             String sessitionUrl = bookingService.initiatePayment(bookingId);
             return ResponseEntity.ok(Map.of("sessitionUrl",sessitionUrl));
         }
+
+    @PostMapping("/{bookingId}/cancel")
+    public ResponseEntity<Void> CancelBooking(@PathVariable Long bookingId) {
+        bookingService.cancelBooking(bookingId);
+        return ResponseEntity.ok().build();
+    }
 }
