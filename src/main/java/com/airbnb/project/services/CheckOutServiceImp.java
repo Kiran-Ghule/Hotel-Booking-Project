@@ -69,7 +69,6 @@ public class CheckOutServiceImp implements CheckOutService {
             bookingRepository.save(booking);
 
             log.info("Session Created Successfully for booking with Id {}", booking.getId());
-
             return session.getUrl();
         }
         catch (StripeException e) {

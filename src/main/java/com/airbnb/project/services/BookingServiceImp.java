@@ -8,6 +8,8 @@ import com.airbnb.project.entities.enums.BookingStatus;
 import com.airbnb.project.exceptions.ResourceNotFound;
 import com.airbnb.project.exceptions.UnAuthorisedException;
 import com.airbnb.project.repositories.*;
+import com.stripe.model.Event;
+import com.stripe.model.checkout.Session;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -95,6 +97,7 @@ public class BookingServiceImp implements BookingService {
     }
 
     @Override
+    @Transactional
     public BookingDTO addGuests(Long bookingId, List<GuestDTO> guestDTOList) {
         log.info("Adding Guest for Booking Id: {}",bookingId);
         Booking booking = bookingRepository
@@ -131,7 +134,9 @@ public class BookingServiceImp implements BookingService {
     }
 
     @Override
+    @Transactional
     public String initiatePayment(Long bookingId) {
+        log.info("initiatePayment() Called");
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(()->( new ResourceNotFound("Booking not found with "+bookingId)));
 
@@ -144,6 +149,35 @@ public class BookingServiceImp implements BookingService {
         booking.setBookingStatus(BookingStatus.PAYMENT_PENDING);
         bookingRepository.save(booking);
         return sessionUrl;
+
+    }
+
+    @Override
+    @Transactional
+    public void capturePayment(Event event) {
+        log.info("CapturePayment has been Hit.....");
+        if("checkout.session.completed".equals(event.getType())){
+            Session session = (Session) event.getDataObjectDeserializer().getObject().orElse(null);
+            log.info("Got session as {}",session.getId());
+            if(session==null) return;
+                String sessionId = session.getId();
+                Booking booking =
+                        bookingRepository.findByPaymentSessionId(sessionId).orElseThrow(()->
+                                new ResourceNotFound("Booking not Found for sessid "+sessionId));
+                log.info("Got booking as {}",booking.getId());
+                booking.setBookingStatus(BookingStatus.CONFIRMED);
+                bookingRepository.save(booking);
+                inventoryRepository.findAndLockReservedInventory(booking.getRoom().getId(),booking.getCheckInDate(),booking.getCheckOutDate(),booking.getRoomsCount());
+                inventoryRepository.confirmBooking(booking.getRoom().getId(),booking.getCheckInDate(),booking.getCheckOutDate(),booking.getRoomsCount());
+
+                log.info("Booking confirmed successfully for Booking Id: {}",booking.getId());
+
+        }
+        else
+        {
+            log.warn("Unhandled event type:{}",event.getType());
+
+        }
 
     }
 

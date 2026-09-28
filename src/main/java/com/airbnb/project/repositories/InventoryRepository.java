@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -58,4 +59,46 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
             );
 
     List<Inventory> findByHotelAndDateBetween(Hotel hotel,LocalDate startDate, LocalDate endDate);
+
+
+
+    @Query("""
+        Select i
+        from Inventory i
+        where i.room.id = :roomId
+        and (i.date between :startDate and :endDate)
+        and i.closed = false
+        AND (i.totalCount - i.bookedCount ) >= :roomCount      
+""")
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    List<Inventory> findAndLockReservedInventory(
+            @Param("roomId") Long roomId,
+            @Param("startDate")LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("roomCount") Integer roomCount
+    );
+
+    @Modifying
+    @Query(
+            """
+        UPDATE 
+            Inventory i
+        SET 
+            i.reservedCount = i.reservedCount - :roomCount,
+            i.bookedCount = i.bookedCount + :roomCount
+        WHERE 
+            i.room.id= :roomId AND
+            i.date BETWEEN :startDate AND :endDate AND
+            (i.totalCount - i.bookedCount )>= :roomCount AND
+            i.reservedCount >= :roomCount AND
+            i.closed = false            
+"""
+    )
+
+    void confirmBooking(
+            @Param("roomId") Long roomId,
+            @Param("startDate")LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("roomCount") Integer roomCount
+    );
 }
