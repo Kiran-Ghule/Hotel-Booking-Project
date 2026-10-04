@@ -70,6 +70,7 @@ public class CheckOutServiceImp implements CheckOutService {
 
             log.info("Session Created Successfully for booking with Id {}", booking.getId());
             return session.getUrl();
+
         }
         catch (StripeException e) {
             throw new RuntimeException(e);
