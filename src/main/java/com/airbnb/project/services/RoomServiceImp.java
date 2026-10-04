@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.airbnb.project.utils.AppUtils.getCurrentUser;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -102,6 +104,31 @@ public class RoomServiceImp implements RoomService {
         inventoryServices.deleteAllInventory(room);
        roomRepository.deleteById(roomId);
 
+
+    }
+
+    @Override
+    @Transactional
+    public RoomDTO updateRoomById(Long roomId, Long hotelId, RoomDTO roomDTO) {
+        log.info("Finding Hotel with Id:{}",hotelId);
+
+        Hotel hotel = hotelRepository.findById(hotelId)
+                .orElseThrow(()-> new ResourceNotFound("Hotel with Id " + hotelId));
+
+        User user = getCurrentUser();
+
+        if(!user.equals(hotel.getOwner())){
+            throw new UnAuthorisedException("Current User Does not Own this hotel");
+        }
+
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new ResourceNotFound("Room with roomId  " + roomId+" not Found"));
+
+        modelMapper.map(room,roomDTO);
+        room.setId(roomId);
+
+        room = roomRepository.save(room);
+        return modelMapper.map(room,RoomDTO.class);
 
     }
 }

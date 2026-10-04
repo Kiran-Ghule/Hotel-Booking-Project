@@ -75,6 +75,8 @@ public class HotelController {
     public ResponseEntity<HotelReportDTO> getHotelReport(@PathVariable Long hotelId,
                                                          @RequestParam(required = false)LocalDate startDate,
                                                          @RequestParam(required = false)LocalDate endDate) {
+
+        log.info("Controller Hit");
         if(startDate == null)
             startDate= LocalDate.now().minusMonths(1);
 
