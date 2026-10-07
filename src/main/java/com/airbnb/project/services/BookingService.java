@@ -1,9 +1,6 @@
 package com.airbnb.project.services;
 
-import com.airbnb.project.dtos.BookingDTO;
-import com.airbnb.project.dtos.BookingRequest;
-import com.airbnb.project.dtos.GuestDTO;
-import com.airbnb.project.dtos.HotelReportDTO;
+import com.airbnb.project.dtos.*;
 import com.stripe.model.Event;
 
 import java.time.LocalDate;
@@ -27,4 +24,7 @@ public interface BookingService {
     List<BookingDTO> getAllBookingsBYHotelId(Long hotelId);
 
     HotelReportDTO getHotelReport(Long hotelId, LocalDate startDate, LocalDate endDate);
+
+    List<BookingDTO> getMyBookings();
+
 }

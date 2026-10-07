@@ -1,12 +1,15 @@
 package com.airbnb.project.services;
 
-import com.airbnb.project.dtos.HotelDTO;
-import com.airbnb.project.dtos.HotelPriceDTO;
-import com.airbnb.project.dtos.HotelSearchRequest;
+import com.airbnb.project.dtos.*;
 import com.airbnb.project.entities.Inventory;
 import com.airbnb.project.entities.Room;
+import com.airbnb.project.entities.User;
+import com.airbnb.project.exceptions.ResourceNotFound;
+import com.airbnb.project.exceptions.UnAuthorisedException;
 import com.airbnb.project.repositories.HotelMinPriceRepository;
 import com.airbnb.project.repositories.InventoryRepository;
+import com.airbnb.project.repositories.RoomRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -18,6 +21,10 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.airbnb.project.utils.AppUtils.getCurrentUser;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +34,7 @@ public class InventoryServiceImp implements InventoryServices {
     private final InventoryRepository inventoryRepository;
     private final ModelMapper modelMapper;
     private final HotelMinPriceRepository hotelMinPriceRepository;
+    private final RoomRepository roomRepository;
 
     @Override
     public void initializeRoomForYear(Room room) {
@@ -78,4 +86,46 @@ public class InventoryServiceImp implements InventoryServices {
                 pageable
         );
     }
+
+    @Override
+    public List<InventoryDTO> getAllInventoryByRoom(Long roomId) {
+
+        log.info("getting all inventory for room {}", roomId);
+        Room room = roomRepository.findById(roomId).orElseThrow(
+                () -> new ResourceNotFound("Room with id " + roomId + " not found")
+        );
+
+        User user = getCurrentUser();
+
+        if(!user.equals(room.getHotel().getOwner()))
+            throw new UnAuthorisedException("Current User is not Owner of this Room's hotel ");
+
+        return inventoryRepository.findByRoomOrderByDate(room).stream()
+                .map(inv -> modelMapper.map(inv, InventoryDTO.class))
+                .toList();
+
+    }
+
+    @Override
+    @Transactional
+    public void updateInventory(Long roomId, UpdateInventoryRequestDTO updateInventoryRequestDTO) {
+        log.info("updating inventory for room {}", roomId);
+        Room room = roomRepository.findById(roomId).orElseThrow(
+                () -> new ResourceNotFound("Room with id " + roomId + " not found")
+        );
+
+        User user = getCurrentUser();
+
+        if(!user.equals(room.getHotel().getOwner()))
+            throw new UnAuthorisedException("Current User is not Owner of this Room's hotel ");
+
+        inventoryRepository.getInventoryAndLockBeforeUpdate(roomId,updateInventoryRequestDTO.getStartTime(),updateInventoryRequestDTO.getEndTime());
+
+       inventoryRepository.updateInventory(roomId,updateInventoryRequestDTO.getStartTime(),
+                updateInventoryRequestDTO.getEndTime(),updateInventoryRequestDTO.getClosed(),
+                updateInventoryRequestDTO.getSurgeFactor());
+
+    }
+
+
 }

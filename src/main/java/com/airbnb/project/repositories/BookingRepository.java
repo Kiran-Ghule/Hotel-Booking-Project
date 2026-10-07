@@ -1,7 +1,9 @@
 package com.airbnb.project.repositories;
 
+import com.airbnb.project.dtos.BookingDTO;
 import com.airbnb.project.entities.Booking;
 import com.airbnb.project.entities.Hotel;
+import com.airbnb.project.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -17,4 +19,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByHotel(Hotel hotel);
 
     List<Booking> findByHotelIdAndCreatedBetween(Long hotelId, LocalDateTime startDate, LocalDateTime endDate);
+
+    List<Booking> findByUser(User user);
 }
